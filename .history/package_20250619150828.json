@@ -2,8 +2,6 @@
   "name": "automation-tool",
   "version": "0.1.0",
   "private": true,
-  "main": "public/electron.js",
-  "homepage": "./",
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -18,15 +16,8 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
-  "devDependencies": {
-    "concurrently": "^9.1.2",
-    "cross-env": "^7.0.3",
-    "electron": "^36.5.0"
-  },
   "scripts": {
-    "start": "concurrently \"cross-env BROWSER=none npm run react-start\" \"npm run electron-start\"",
-    "react-start": "react-scripts start",
-    "electron-start": "electron .",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -48,5 +39,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^36.5.0"
   }
 }

@@ -1,0 +1,84 @@
+.expandable-table {
+  margin-top: 20px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.app-block {
+  border: 1px solid #ddd;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.app-header {
+  background-color: #1e3c72;
+  color: white;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.child-section {
+  background: #f4f7fa;
+  padding: 10px 16px;
+}
+
+.section-block {
+  margin-bottom: 15px;
+  padding: 8px;
+  background: white;
+  border-left: 3px solid #2a5298;
+  border-radius: 4px;
+}
+
+.section-title {
+  font-weight: bold;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.row-item {
+  display: flex;
+  padding: 5px 0;
+  border-bottom: 1px dashed #ccc;
+  align-items: center;
+}
+
+.row-key {
+  width: 80px;
+  font-weight: 600;
+  color: #333;
+}
+
+.row-value {
+  flex: 1;
+}
+
+.chip {
+  display: inline-block;
+  background-color: #e0e0e0;
+  padding: 5px 10px;
+  margin: 2px;
+  border-radius: 20px;
+  font-size: 14px;
+  position: relative;
+}
+
+.delete {
+  margin-left: 8px;
+  cursor: pointer;
+  color: red;
+}
