@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import './Home.css';
 import staticData from '../../utils/staticData';
+import TreeView from '../TreeView/TreeView';
+import TableData from '../TableData/TableData';
 
 const Home = () => {
   const [expanded, setExpanded] = useState({});
+  const [selectedTreeItem, setSelectedTreeItem] = useState([]);
 
   const toggleSection = (app) => {
     setExpanded((prev) => ({ ...prev, [app]: !prev[app] }));
@@ -11,7 +14,9 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      <div className="sidebar">
+      <TreeView setSelectedTreeItem={setSelectedTreeItem} />
+      <TableData selectedTreeItem={selectedTreeItem} />
+      {/* <div className="sidebar">
         <h2>Applications</h2>
         <ul>
           {Object.keys(staticData).map((app, index) => (
@@ -43,12 +48,8 @@ const Home = () => {
             </li>
           ))}
         </ul>
-      </div>
+      </div> */}
 
-      <div className="main-content">
-        <h1>🧩 Welcome to TOSCA-Style Automation Layout</h1>
-        <p>Select an application from the left panel to expand its controls.</p>
-      </div>
     </div>
   );
 };

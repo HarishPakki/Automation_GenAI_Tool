@@ -13,6 +13,10 @@ const Dashboard = () => {
   return (
     <div className="dashboard-layout">
       <Header />
+      <div className="main-content">
+        <h1>🧩 Welcome to TOSCA-Style Automation Layout</h1>
+        <p>Select an application from the left panel to expand its controls.</p>
+      </div>
       <div className="dashboard-content">
         <Sidebar />
         <main className="main-panel">

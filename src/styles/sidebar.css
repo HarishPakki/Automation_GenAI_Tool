@@ -14,8 +14,9 @@
   padding: 12px 20px;
   cursor: pointer;
   transition: background 0.3s ease;
+  background-color: #2a5298;
 }
 
 .sidebar li:hover {
-  background-color: #2a5298;
+  background-color: skyblue;
 }

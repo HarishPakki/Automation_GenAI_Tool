@@ -1,0 +1,29 @@
+.table-data {
+    margin: 16px 3px;
+}
+
+table {
+    width: 80%;
+    border-collapse: collapse;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+thead {
+    background-color: #0077cc;
+    color: white;
+}
+
+th, td {
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid #d6e9f8;
+}
+
+tbody tr:hover {
+    background-color: #eaf4fd;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f5fbff;
+}
