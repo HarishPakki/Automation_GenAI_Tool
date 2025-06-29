@@ -2,3 +2,13 @@
     background-color: #d5e0f2;
     margin: 16px 3px;
 }
+
+.container {
+  /* border-left: 1px solid black; */
+  padding-left: 1rem;
+}
+
+span {
+  margin: 0.5rem;
+  cursor: pointer;
+}

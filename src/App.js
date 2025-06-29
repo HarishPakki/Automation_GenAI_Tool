@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './auth/Login';
 import Dashboard from './components/dashboard/Dashboard';
 import { getLoggedInUser } from './auth/authService';
+import FileExplorerContextWrapper from './components/TreeView/context/FileExplorerContext';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(!!getLoggedInUser());
@@ -15,7 +16,7 @@ function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<Login onLogin={() => setLoggedIn(true)} />} />
-        <Route path="/dashboard" element={loggedIn ? <Dashboard /> : <Navigate to="/" />} />
+        <Route path="/dashboard" element={loggedIn ? <FileExplorerContextWrapper><Dashboard /></FileExplorerContextWrapper> : <Navigate to="/" />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </HashRouter>
