@@ -18,7 +18,7 @@ const Dashboard = () => {
         <p>Select an application from the left panel to expand its controls.</p>
       </div>
       <div className="dashboard-content">
-        <Sidebar />
+        {/* <Sidebar /> */}
         <main className="main-panel">
           <Routes>
             <Route path="/" element={<Home />} />

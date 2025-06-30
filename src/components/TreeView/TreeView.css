@@ -12,3 +12,27 @@ span {
   margin: 0.5rem;
   cursor: pointer;
 }
+
+.file-row {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.file-actions {
+  display: flex;
+  align-items: center;
+}
+
+.folder-actions {
+  display: flex;
+  align-items: center;
+}
+
+.file-name {
+  width: 120px;
+}
+
+.new-file {
+  display: flex;
+}
