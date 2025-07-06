@@ -1,35 +1,36 @@
 import { useState } from "react";
-import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
-import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
 
-const styles = {
-  fontSize: '20px'
-};
-
-export default function Input({ name = "", id, submit, cancel, newType }) {
+export default function Input({ submit, id, cancel, name = "", newType }) {
   const [value, setValue] = useState(name);
 
+  const handleSubmit = () => {
+    if (value.trim() === "") return;
+    submit(id, value, newType);
+    cancel();
+  };
+
   return (
-    <div className="new-file">
-      <div>
-        <input
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          type="text"
-        />
-      </div>
-      <div
-        style={{ cursor: 'pointer' }}
-        onClick={() => {
-          if(value){
-            submit(id, value, newType);
-            cancel();
-          }
-        }}
-      >
-        <CheckOutlinedIcon sx={styles} />
-      </div>
-      <div onClick={cancel} style={{ cursor: 'pointer' }}><CloseOutlinedIcon sx={styles} /></div>
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <TextField
+        autoFocus
+        variant="standard"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        placeholder={newType ? `New ${newType} name` : "New name"}
+        size="small"
+        fullWidth
+      />
+      <IconButton onClick={handleSubmit} size="small">
+        <CheckIcon fontSize="small" />
+      </IconButton>
+      <IconButton onClick={cancel} size="small">
+        <CloseIcon fontSize="small" />
+      </IconButton>
     </div>
   );
 }
