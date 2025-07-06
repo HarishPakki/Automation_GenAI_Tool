@@ -219,14 +219,14 @@ export default function FileExplorer() {
         }}>
           Rename
         </MenuItem>
-        <MenuItem onClick={() => {
+        {/* <MenuItem onClick={() => {
           if (confirm(`Are you sure you want to delete "${node.name}"?`)) {
             deleteNode(node.id);
           }
           closeContextMenu();
         }}>
           Delete
-        </MenuItem>
+        </MenuItem> */}
       </Menu>
     );
   };

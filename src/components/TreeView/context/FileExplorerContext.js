@@ -48,29 +48,25 @@ export default function FileExplorerContextWrapper({ children }) {
     setNodes(updatedNodes);
   };
 
-// ... (keep all existing code)
-
-const deleteNode = (id) => {
-  const updatedNodes = { ...nodes };
-  const parentId = updatedNodes[id]?.parentId;
-  
-  if (parentId) {
-    updatedNodes[parentId].children = updatedNodes[parentId].children.filter(
-      (childId) => childId !== id
-    );
-  }
-  
-  const queue = [id];
-  while (queue.length > 0) {
-    const currentId = queue.shift();
-    if (nodes[currentId]?.children) queue.push(...nodes[currentId].children);
-    delete updatedNodes[currentId];
-  }
-  
-  setNodes(updatedNodes);
-};
-
-// ... (rest of the file remains the same)
+  const deleteNode = (id) => {
+    const updatedNodes = { ...nodes };
+    const parentId = updatedNodes[id].parentId;
+    
+    if (parentId) {
+      updatedNodes[parentId].children = updatedNodes[parentId].children.filter(
+        (childId) => childId !== id
+      );
+    }
+    
+    const queue = [id];
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (nodes[currentId]?.children) queue.push(...nodes[currentId].children);
+      delete updatedNodes[currentId];
+    }
+    
+    setNodes(updatedNodes);
+  };
 
   const handleContextMenu = (e, nodeId) => {
     e.preventDefault();
