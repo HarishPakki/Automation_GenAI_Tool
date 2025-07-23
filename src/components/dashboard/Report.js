@@ -1,21 +1,32 @@
 import React from 'react';
-import { Pie } from 'react-chartjs-2';
+import './Report.css';
 
-function Report() {
-  const data = {
-    labels: ['Passed', 'Failed', 'Skipped'],
-    datasets: [{
-      data: [60, 30, 10],
-      backgroundColor: ['green', 'red', 'orange']
-    }]
-  };
-
+const Report = () => {
   return (
-    <div>
-      <h2>Test Execution Report</h2>
-      <Pie data={data} />
+    <div className="report-container">
+      <h1>Report Analysis</h1>
+      <div className="report-content">
+        <div className="report-grid">
+          <div className="report-card">
+            <h3>Test Execution Summary</h3>
+            <div className="chart-placeholder"></div>
+          </div>
+          <div className="report-card">
+            <h3>Defect Analysis</h3>
+            <div className="chart-placeholder"></div>
+          </div>
+          <div className="report-card">
+            <h3>Test Coverage</h3>
+            <div className="chart-placeholder"></div>
+          </div>
+          <div className="report-card">
+            <h3>Execution Trend</h3>
+            <div className="chart-placeholder"></div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default Report;

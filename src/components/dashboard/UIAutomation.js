@@ -3,8 +3,22 @@ import './UIAutomation.css';
 
 const UIAutomation = () => {
   return (
-    <div className="display-text">
-      🛠️ UI Automation Page – Under Scheduled Maintenance. Stay tuned!
+    <div className="ui-automation-container">
+      <h1>UI Automation</h1>
+      <div className="ui-automation-content">
+        <div className="ui-section">
+          <h2>Test Scripts</h2>
+          <div className="placeholder-box">
+            <p>UI Automation test scripts will be displayed here</p>
+          </div>
+        </div>
+        <div className="ui-section">
+          <h2>Execution Results</h2>
+          <div className="placeholder-box">
+            <p>Execution results will appear here</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

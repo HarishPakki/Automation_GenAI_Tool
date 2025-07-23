@@ -1,12 +1,18 @@
 import React from 'react';
+import './Execution.css';
 
-function Execution() {
+const Execution = () => {
   return (
-    <div>
-      <h2>Execution Dashboard</h2>
-      <p>Select test cases and trigger execution from here.</p>
+    <div className="execution-container">
+      <h1>Test Execution</h1>
+      <div className="execution-content">
+        <div className="execution-placeholder">
+          <p>Test execution dashboard will be displayed here</p>
+          <p>Select test cases to execute from the Test Cases section</p>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default Execution;
