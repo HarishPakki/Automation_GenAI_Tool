@@ -1,0 +1,41 @@
+/* TopNav.css */
+.top-nav {
+  display: flex;
+  justify-content: center;  /* Center the links */
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent background */
+  padding: 10px 20px;       /* Add padding */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);  /* Shadow for depth */
+  border-radius: 5px;       /* Rounded corners */
+  margin-bottom: 10px;      /* Adjust margin below the nav if needed */
+}
+
+.nav-link {
+  color: black;             /* Black text */
+  text-decoration: none;
+  font-weight: bold;
+  padding: 10px 15px;
+  border-radius: 5px;       /* Rounded corners */
+  margin: 0 10px;           /* Space between links */
+  transition: background-color 0.3s, transform 0.2s; /* Smooth transition */
+}
+
+.nav-link:hover {
+  background-color: #d1e0f0; /* Light blue background on hover */
+  transform: scale(1.05);    /* Slight scaling effect */
+}
+
+.nav-link:active {
+  background-color: #b0c4de; /* Even darker blue when active */
+}
+
+.display-text {
+  font-size: 18px;          /* Adjust font size */
+  color: #333;              /* Dark text color */
+  text-align: center;       /* Center the text */
+  margin-top: 20px;         /* Space above the text */
+  padding: 20px;            /* Padding around the text */
+  background-color: #f9f9f9; /* Light background for contrast */
+  border: 1px solid #ddd;   /* Light border */
+  border-radius: 5px;       /* Rounded corners */
+}

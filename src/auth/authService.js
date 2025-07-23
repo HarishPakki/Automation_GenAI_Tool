@@ -1,5 +1,5 @@
 export const loginUser = (username, password) => {
-  if (username === 'admin' && password === 'admin123') {
+  if (username === 'a' && password === 'a') {
     sessionStorage.setItem('username', username);
     return true;
   }

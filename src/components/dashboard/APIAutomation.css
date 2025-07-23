@@ -1,0 +1,10 @@
+.display-text {
+  font-size: 20px;
+  color: #2e3a59;
+  padding: 30px;
+  margin: 25px;
+  border: 2px dashed #99c2ff;
+  background: #e6f0ff;
+  text-align: center;
+  border-radius: 8px;
+}

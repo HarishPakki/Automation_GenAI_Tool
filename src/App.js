@@ -16,7 +16,7 @@ function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<Login onLogin={() => setLoggedIn(true)} />} />
-        <Route path="/dashboard" element={loggedIn ? <FileExplorerContextWrapper><Dashboard /></FileExplorerContextWrapper> : <Navigate to="/" />} />
+        <Route path="/dashboard/*" element={loggedIn ? <FileExplorerContextWrapper><Dashboard /></FileExplorerContextWrapper> : <Navigate to="/" />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </HashRouter>
