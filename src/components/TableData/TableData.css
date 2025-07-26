@@ -1,15 +1,18 @@
+/* TableData.css */
 .table-data-wrapper {
   padding: 16px;
   overflow-x: auto;
-  background: #f0f4f8;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #ffffff;
+  font-family: 'AkkuratPro', 'Segoe UI', sans-serif;
 }
 
 .table-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .search-container {
@@ -22,23 +25,30 @@
   padding: 8px 12px;
   flex: 1;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   font-size: 14px;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #D6002A;
 }
 
 .clear-filters {
-  padding: 8px 14px;
+  padding: 8px 16px;
   border: none;
-  background-color: #007bff;
+  background-color: #D6002A;
   color: white;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
   transition: background-color 0.2s;
 }
 
 .clear-filters:hover {
-  background-color: #0056b3;
+  background-color: #B50024;
 }
 
 .table-container {
@@ -46,7 +56,7 @@
   overflow-x: auto;
   background: white;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 table {
@@ -66,8 +76,9 @@ th, td {
 }
 
 thead {
-  background-color: #2c3e50;
-  color: white;
+  background-color: #f8f9fa;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
 }
 
 .header-content {
@@ -80,7 +91,7 @@ thead {
 .filter-button {
   background: transparent;
   border: none;
-  color: white;
+  color: #666;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -89,11 +100,11 @@ thead {
 }
 
 .filter-button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  color: #D6002A;
 }
 
 .filter-button.active {
-  background: rgba(255, 255, 255, 0.2);
+  color: #D6002A;
 }
 
 .filter-box {
@@ -107,7 +118,6 @@ thead {
   overflow-y: auto;
   width: 280px;
   border-radius: 6px;
-  animation: fadeIn 0.2s ease-in-out;
 }
 
 .filter-header {
@@ -121,6 +131,7 @@ thead {
   margin: 0;
   font-size: 15px;
   color: #333;
+  font-weight: bold;
 }
 
 .close-filter {
@@ -138,8 +149,7 @@ thead {
 }
 
 .close-filter:hover {
-  background: #f0f0f0;
-  border-radius: 50%;
+  color: #D6002A;
 }
 
 .search-filter {
@@ -152,6 +162,11 @@ thead {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
+}
+
+.filter-search-input:focus {
+  border-color: #D6002A;
+  outline: none;
 }
 
 .filter-options-container {
@@ -207,16 +222,18 @@ thead {
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .apply-filter {
-  background-color: #2c3e50;
+  background-color: #D6002A;
   color: white;
   border: none;
 }
 
 .apply-filter:hover {
-  background-color: #1a252f;
+  background-color: #B50024;
 }
 
 .clear-filter {
@@ -232,9 +249,10 @@ thead {
 .edit-input {
   width: 100%;
   padding: 6px;
-  border: 1px solid #0077cc;
+  border: 1px solid #D6002A;
   border-radius: 4px;
   font-size: 14px;
+  outline: none;
 }
 
 .cell-content {
@@ -245,7 +263,7 @@ thead {
 }
 
 .changed-cell {
-  background-color: #e6ffed !important;
+  background-color: #f8e8e8 !important;
 }
 
 .table-footer {
@@ -275,11 +293,12 @@ thead {
 
 .records-select {
   padding: 5px 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 4px;
   background-color: white;
   cursor: pointer;
   font-size: 14px;
+  outline: none;
 }
 
 .records-select:hover {
@@ -357,7 +376,7 @@ thead {
 }
 
 .page-option.active {
-  background-color: #e6f3ff;
+  background-color: #f8e8e8;
   font-weight: bold;
 }
 
@@ -382,24 +401,26 @@ thead {
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .save-button {
-  background-color: #4CAF50;
+  background-color: #D6002A;
   color: white;
 }
 
 .save-button:hover {
-  background-color: #3e8e41;
+  background-color: #B50024;
 }
 
 .execute-button {
-  background-color: #2196F3;
+  background-color: #333;
   color: white;
 }
 
 .execute-button:hover {
-  background-color: #0b7dda;
+  background-color: #111;
 }
 
 tr.dragging {
@@ -412,15 +433,10 @@ tr:hover {
 }
 
 .row-selected {
-  background-color: #e6f3ff !important;
+  background-color: #f8e8e8 !important;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Custom scrollbars */
+/* Scrollbar styling */
 .table-container::-webkit-scrollbar {
   height: 8px;
 }
@@ -431,48 +447,34 @@ tr:hover {
 }
 
 .table-container::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #ccc;
   border-radius: 4px;
 }
 
 .table-container::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #999;
 }
 
-.filter-options-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.filter-options-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.filter-options-container::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
-}
-
-.filter-options-container::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
-}
-
+.filter-options-container::-webkit-scrollbar,
 .page-dropdown::-webkit-scrollbar {
   width: 6px;
 }
 
+.filter-options-container::-webkit-scrollbar-track,
 .page-dropdown::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 3px;
 }
 
+.filter-options-container::-webkit-scrollbar-thumb,
 .page-dropdown::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 3px;
 }
 
+.filter-options-container::-webkit-scrollbar-thumb:hover,
 .page-dropdown::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
+  background: #999;
 }
 
 /* Responsive adjustments */

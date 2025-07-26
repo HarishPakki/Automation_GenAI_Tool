@@ -23,7 +23,7 @@ const Dashboard = () => {
       {showWelcome && (
         <div className="main-content">
           <h1>🧩 Welcome to TOSCA-Style Automation Layout</h1>
-          <p>Select an application from the left panel to expand its controls.</p>
+          <p></p>
         </div>
       )}
       <div className="dashboard-content">

@@ -1,3 +1,4 @@
+// Login.js
 import React, { useState } from 'react';
 import './Login.css';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +22,10 @@ function Login({ onLogin }) {
 
   return (
     <div className="login-container">
-      <div className="login-box animated fadeIn">
+      <div className="login-box">
+        <div className="logo-container">
+          <img src="/path-to-your-logo.png" alt="Company Logo" className="company-logo" />
+        </div>
         <h2>🚀 Automation Tool Login</h2>
         <input
           type="text"
@@ -36,7 +40,7 @@ function Login({ onLogin }) {
           onChange={(e) => setPassword(e.target.value)}
         />
         {error && <div className="error-message">{error}</div>}
-        <button onClick={handleLogin}>Login</button>
+        <button onClick={handleLogin}>LOGIN</button>
       </div>
     </div>
   );

@@ -1,10 +1,12 @@
+/* TreeView.css */
 .tree-view-container {
   width: 300px;
   padding: 16px;
-  background: #f5f5f5;
+  background: #ffffff;
   height: 100vh;
   overflow-y: auto;
   border-right: 1px solid #e0e0e0;
+  font-family: 'AkkuratPro', 'Segoe UI', sans-serif;
 }
 
 .create-app-container {
@@ -13,9 +15,22 @@
   justify-content: center;
 }
 
+.create-app-container .MuiButton-root {
+  background-color: #D6002A;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+.create-app-container .MuiButton-root:hover {
+  background-color: #B50024;
+}
+
 .no-data {
   text-align: center;
-  color: #757575;
+  color: #666;
   padding: 20px;
   font-style: italic;
 }
@@ -28,7 +43,7 @@
 }
 
 .node-container:hover {
-  background-color: #e3f2fd;
+  background-color: #f8e8e8;
 }
 
 .file-row {
@@ -51,6 +66,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #333;
+  font-size: 14px;
 }
 
 .action-icons {
@@ -64,14 +81,84 @@
 }
 
 .node-container .MuiSvgIcon-root {
-  color: #616161;
+  color: #666;
   transition: color 0.2s;
 }
 
 .node-container:hover .MuiSvgIcon-root {
-  color: #1976d2;
+  color: #D6002A;
 }
 
 .applications-list {
   margin-top: 8px;
+}
+
+/* Context menu styling */
+.MuiMenu-paper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 4px !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.MuiMenuItem-root {
+  font-size: 14px !important;
+  color: #333 !important;
+}
+
+.MuiMenuItem-root:hover {
+  background-color: #f8e8e8 !important;
+  color: #D6002A !important;
+}
+
+/* Dialog styling */
+.MuiDialog-paper {
+  border-radius: 4px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.MuiDialogTitle-root {
+  font-weight: bold !important;
+  color: #333 !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.MuiDialogContentText-root {
+  color: #666 !important;
+}
+
+.MuiDialogActions-root {
+  border-top: 1px solid #e0e0e0 !important;
+  padding: 16px !important;
+}
+
+.MuiButton-contained {
+  text-transform: uppercase !important;
+  font-weight: bold !important;
+}
+
+.MuiButton-containedError {
+  background-color: #D6002A !important;
+}
+
+.MuiButton-containedError:hover {
+  background-color: #B50024 !important;
+}
+
+/* Scrollbar styling */
+.tree-view-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tree-view-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.tree-view-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.tree-view-container::-webkit-scrollbar-thumb:hover {
+  background: #999;
 }

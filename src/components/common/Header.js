@@ -1,6 +1,9 @@
+// Header.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Header.css';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { Typography } from '@mui/material';
 
 function Header() {
   const navigate = useNavigate();
@@ -12,8 +15,23 @@ function Header() {
 
   return (
     <header className="app-header">
-      <div className="logo">🚀 Automation Tool</div>
-      <button className="logout-button" onClick={handleLogout}>Logout</button>
+      <div className="header-container">
+        <div className="brand-section">
+          <img 
+            src="/automation-tool-logo.png" 
+            alt="Automation Tool Logo" 
+            className="logo"
+          />
+          <Typography variant="h6" className="app-title">
+            AUTOMATION TOOL
+          </Typography>
+        </div>
+        
+        <button className="logout-button" onClick={handleLogout}>
+          <LogoutIcon className="logout-icon" />
+          <span>LOGOUT</span>
+        </button>
+      </div>
     </header>
   );
 }
