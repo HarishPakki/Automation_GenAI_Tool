@@ -1,11 +1,11 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
-const { spawn } = require('child_process');
 const fs = require('fs');
+const { spawn } = require('child_process');
+const http = require('http');
 
 let recordingProcess = null;
-let electronAppProcess = null;
-let executionProcess = null;
+let appProcess = null;
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -17,167 +17,158 @@ function createWindow() {
     }
   });
 
-  const startUrl = process.env.ELECTRON_START_URL || 'http://localhost:3000';
-  win.loadURL(startUrl);
+  win.loadURL(process.env.ELECTRON_START_URL || 'http://localhost:3000');
 }
 
-ipcMain.handle('dialog:openFile', () => {
-  return dialog.showOpenDialog({
+app.whenReady().then(createWindow);
+
+// File chooser
+ipcMain.handle('dialog:openFile', async () => {
+  const result = await dialog.showOpenDialog({
     properties: ['openFile'],
-    filters: [{ name: 'Applications', extensions: ['exe', 'app'] }]
-  }).then(result => result.filePaths[0]);
+    filters: [{ name: 'Executables', extensions: ['exe'] }]
+  });
+  return result.filePaths[0];
 });
 
+// Start recording
 ipcMain.handle('recorder:start', async (_, appPath) => {
-  if (recordingProcess) return { error: "Recording already in progress" };
-
   return new Promise((resolve, reject) => {
-    try {
-      // Launch the Electron app
-      electronAppProcess = spawn(appPath, ['--remote-debugging-port=9222'], {
-        detached: true,
-        stdio: 'ignore'
+    const timestamp = Date.now();
+    const outputFile = path.join(__dirname, `recording-${timestamp}.py`);
+    const xpathFile = path.join(__dirname, `xpaths-${timestamp}.txt`);
+
+    appProcess = spawn(`"${appPath}"`, [
+      '--remote-debugging-port=9222',
+      '--no-sandbox',
+      '--disable-gpu'
+    ], {
+      shell: true,
+      detached: true,
+      stdio: 'ignore'
+    });
+
+    // Wait for remote-debug port
+    const maxAttempts = 30;
+    let attempts = 0;
+
+    const waitForDebugPort = setInterval(() => {
+      http.get('http://localhost:9222/json/version', (res) => {
+        if (res.statusCode === 200) {
+          clearInterval(waitForDebugPort);
+          startRecordingSession();
+        }
+      }).on('error', () => {
+        if (++attempts >= maxAttempts) {
+          clearInterval(waitForDebugPort);
+          reject({ error: 'Timeout: app did not expose port 9222' });
+        }
       });
+    }, 1000);
 
-      // Generate unique filenames
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const pyFile = path.join(__dirname, `recording-${timestamp}.py`);
-      const xpathFile = path.join(__dirname, `xpaths-${timestamp}.txt`);
-
-      // Get the correct playwright command
+    function startRecordingSession() {
       const playwrightBin = process.platform === 'win32'
-        ? path.join(__dirname, 'node_modules', '.bin', 'playwright.cmd')
-        : path.join(__dirname, 'node_modules', '.bin', 'playwright');
+        ? path.join(process.env.APPDATA, 'npm', 'playwright.cmd')
+        : 'playwright';
 
-      // Start Playwright recorder
       recordingProcess = spawn(playwrightBin, [
         'codegen',
         '--target=python',
-        `--output=${pyFile}`,
-        '--save-storage=auth.json',
+        `--output=${outputFile}`,
         'http://localhost:9222'
       ], {
-        cwd: __dirname,
+        shell: true,
         stdio: ['pipe', 'pipe', 'pipe']
       });
 
-      // Error handling
-      recordingProcess.on('error', (err) => {
-        console.error('Recorder error:', err);
-        reject({ error: `Recorder failed to start: ${err.message}` });
-      });
-
-      // Capture XPaths
       let xpaths = '';
+
       recordingProcess.stdout.on('data', (data) => {
         const output = data.toString();
-        if (output.includes('page.')) {
-          const xpath = extractXPath(output);
-          if (xpath) {
-            xpaths += `${xpath}\n`;
-            fs.appendFileSync(xpathFile, `${xpath}\n`);
-          }
+        const match = output.match(/"xpath=(.*?)"/);
+        if (match) {
+          xpaths += `${match[1]}\n`;
+          fs.appendFileSync(xpathFile, `${match[1]}\n`);
         }
       });
 
       recordingProcess.stderr.on('data', (data) => {
-        console.error('Recorder stderr:', data.toString());
+        console.error('[Playwright ERROR]', data.toString());
       });
 
       recordingProcess.on('close', (code) => {
-        if (code === 0) {
-          try {
-            const pythonCode = fs.readFileSync(pyFile, 'utf8');
-            resolve({
-              pythonCode,
-              xpaths: fs.readFileSync(xpathFile, 'utf8'),
-              pyFile,
-              xpathFile
-            });
-          } catch (readError) {
-            reject({ error: `Failed to read output files: ${readError.message}` });
-          }
-        } else {
-          reject({ error: `Recording process exited with code ${code}` });
-        }
+        const pythonCode = fs.existsSync(outputFile) ? fs.readFileSync(outputFile, 'utf8') : '';
+        const xpathText = fs.existsSync(xpathFile) ? fs.readFileSync(xpathFile, 'utf8') : '';
+
+        console.log('✔️ Python Code:\n', pythonCode || '[EMPTY]');
+        console.log('✔️ XPaths:\n', xpathText || '[EMPTY]');
+
+        resolve({
+          pythonCode,
+          xpaths: xpathText,
+          pyFile: outputFile,
+          xpathFile: xpathFile
+        });
       });
-    } catch (err) {
-      reject({ error: `Recording setup failed: ${err.message}` });
     }
+
+    // Auto-stop after 30s timeout
+    setTimeout(() => {
+      clearInterval(waitForDebugPort);
+      reject({ error: 'Recording timed out (30s)' });
+    }, 30000);
   });
 });
 
-function extractXPath(codeLine) {
-  const match = codeLine.match(/\('(.+?)'\)/);
-  return match ? match[1].replace('xpath=', '') : null;
-}
-
+// Stop session
 ipcMain.handle('recorder:stop', () => {
-  [recordingProcess, electronAppProcess].forEach(proc => {
+  [recordingProcess, appProcess].forEach(proc => {
     if (proc) {
       try {
-        if (process.platform === 'win32') {
-          spawn('taskkill', ['/pid', proc.pid, '/f', '/t']);
-        } else {
-          proc.kill();
-        }
-      } catch (err) {
-        console.error('Error killing process:', err);
-      }
-      proc = null;
+        process.kill(proc.pid);
+      } catch (_) { }
     }
   });
+  recordingProcess = null;
+  appProcess = null;
   return { status: 'stopped' };
 });
 
-// ... rest of your existing code ...
+// Execute script
 ipcMain.handle('recorder:execute', async (_, { script, filePath }) => {
   return new Promise((resolve) => {
     const logs = [];
-    executionProcess = spawn('python', [filePath || '-c', script], {
-      stdio: ['inherit', 'pipe', 'pipe']
+    const proc = spawn('python', [filePath || '-c', script], {
+      shell: true,
+      stdio: ['ignore', 'pipe', 'pipe']
     });
 
-    executionProcess.stdout.on('data', (data) => {
-      logs.push(data.toString().trim());
-    });
-
-    executionProcess.stderr.on('data', (data) => {
-      logs.push(`ERROR: ${data.toString().trim()}`);
-    });
-
-    executionProcess.on('close', (code) => {
-      resolve({ logs, exitCode: code });
-    });
-
-    executionProcess.on('error', (err) => {
-      logs.push(`Failed to start execution: ${err.message}`);
-      resolve({ logs, exitCode: -1 });
-    });
+    proc.stdout.on('data', data => logs.push(data.toString()));
+    proc.stderr.on('data', data => logs.push(`ERROR: ${data.toString()}`));
+    proc.on('close', () => resolve({ logs }));
   });
 });
 
-ipcMain.handle('recorder:status', () => ({
-  isRecording: !!recordingProcess,
-  isExecuting: !!executionProcess
-}));
-
+// Save to file
 ipcMain.handle('file:save', (_, { filename, content }) => {
   try {
     fs.writeFileSync(filename, content);
     return { success: true };
-  } catch (error) {
-    return { error: error.message };
+  } catch (err) {
+    return { error: err.message };
   }
 });
 
+// Status check
+ipcMain.handle('recorder:status', () => ({
+  isRecording: !!recordingProcess
+}));
+
+// On app exit
 app.on('before-quit', () => {
-  [recordingProcess, electronAppProcess, executionProcess].forEach(proc => {
-    if (proc) {
-      proc.kill();
-      proc = null;
-    }
+  [recordingProcess, appProcess].forEach(proc => {
+    try {
+      if (proc) process.kill(proc.pid);
+    } catch (_) { }
   });
 });
-
-app.whenReady().then(createWindow);
