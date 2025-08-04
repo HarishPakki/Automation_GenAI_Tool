@@ -22,7 +22,6 @@ function createWindow() {
 
 app.whenReady().then(createWindow);
 
-// File chooser
 ipcMain.handle('dialog:openFile', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
@@ -31,12 +30,11 @@ ipcMain.handle('dialog:openFile', async () => {
   return result.filePaths[0];
 });
 
-// Start recording
-ipcMain.handle('recorder:start', async (_, appPath) => {
+ipcMain.handle('recorder:start', async (_, { appPath, enableSelfHealing }) => {
   return new Promise((resolve, reject) => {
     const timestamp = Date.now();
-    const outputFile = path.join(__dirname, `recording-${timestamp}.py`);
-    const xpathFile = path.join(__dirname, `xpaths-${timestamp}.txt`);
+    const pageObjectFile = path.join(__dirname, `page_objects_${timestamp}.py`);
+    const testScriptFile = path.join(__dirname, `test_script_${timestamp}.py`);
 
     appProcess = spawn(`"${appPath}"`, [
       '--remote-debugging-port=9222',
@@ -48,7 +46,6 @@ ipcMain.handle('recorder:start', async (_, appPath) => {
       stdio: 'ignore'
     });
 
-    // Wait for remote-debug port
     const maxAttempts = 30;
     let attempts = 0;
 
@@ -74,45 +71,117 @@ ipcMain.handle('recorder:start', async (_, appPath) => {
       recordingProcess = spawn(playwrightBin, [
         'codegen',
         '--target=python',
-        `--output=${outputFile}`,
+        '--output=-',
         'http://localhost:9222'
       ], {
         shell: true,
         stdio: ['pipe', 'pipe', 'pipe']
       });
 
-      let xpaths = '';
+      let pageObjects = [];
+      let testScript = '';
 
       recordingProcess.stdout.on('data', (data) => {
         const output = data.toString();
-        const match = output.match(/"xpath=(.*?)"/);
-        if (match) {
-          xpaths += `${match[1]}\n`;
-          fs.appendFileSync(xpathFile, `${match[1]}\n`);
+        const interactionMatch = output.match(/page\.(click|fill|press)\(['"](.*?)['"]\)/);
+        
+        if (interactionMatch) {
+          const [_, actionType, selector] = interactionMatch;
+          const methodName = `action_${pageObjects.length + 1}`;
+          
+          const { methodCode, testLine } = generatePythonCode({
+            actionType,
+            selector,
+            methodName,
+            enableSelfHealing
+          });
+
+          pageObjects.push(methodCode);
+          testScript += testLine;
         }
       });
 
-      recordingProcess.stderr.on('data', (data) => {
-        console.error('[Playwright ERROR]', data.toString());
-      });
+      recordingProcess.on('close', () => {
+        const pageObjectContent = `from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
-      recordingProcess.on('close', (code) => {
-        const pythonCode = fs.existsSync(outputFile) ? fs.readFileSync(outputFile, 'utf8') : '';
-        const xpathText = fs.existsSync(xpathFile) ? fs.readFileSync(xpathFile, 'utf8') : '';
+class GeneratedPage:
+    def __init__(self, driver):
+        self.driver = driver
+        self.page = self
 
-        console.log('✔️ Python Code:\n', pythonCode || '[EMPTY]');
-        console.log('✔️ XPaths:\n', xpathText || '[EMPTY]');
+${pageObjects.join('\n')}`;
+
+        const testScriptContent = `from page_objects import GeneratedPage
+
+def test_generated_flow(driver):
+    page = GeneratedPage(driver)
+${testScript}
+    return True`;
+
+        fs.writeFileSync(pageObjectFile, pageObjectContent);
+        fs.writeFileSync(testScriptFile, testScriptContent);
 
         resolve({
-          pythonCode,
-          xpaths: xpathText,
-          pyFile: outputFile,
-          xpathFile: xpathFile
+          pageObjects: pageObjectContent,
+          testScript: testScriptContent,
+          pageObjectFile,
+          testScriptFile
         });
       });
     }
 
-    // Auto-stop after 30s timeout
+    function generatePythonCode({ actionType, selector, methodName, enableSelfHealing }) {
+      const actions = {
+        click: 'element.click()',
+        fill: 'element.send_keys("TEST_DATA")',
+        press: 'element.send_keys(Keys.RETURN)'
+      };
+
+      const action = actions[actionType] || 'element.click()';
+      const description = `Performs ${actionType} action on element located by "${selector}"`;
+
+      let methodCode, testLine;
+
+      if (enableSelfHealing) {
+        methodCode = `
+    def ${methodName}(self, retries=3):
+        """${description} with self-healing"""
+        locators = [
+            "${selector}",  # Primary locator
+            "//*[contains(text(), '${selector.split('=').pop().replace(/['"]/g, '')}')]",  # Text fallback
+            "//*[contains(@id, '${selector.split('=').pop().replace(/['"]/g, '').slice(0, 4)}')]"  # Partial ID
+        ]
+        
+        for attempt in range(retries):
+            for locator in locators:
+                try:
+                    element = WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.XPATH, locator)))
+                    ${action}
+                    return element
+                except (NoSuchElementException, TimeoutException):
+                    if attempt == retries - 1 and locator == locators[-1]:
+                        raise
+                    continue`;
+      } else {
+        methodCode = `
+    def ${methodName}(self):
+        """${description}"""
+        element = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "${selector}")))
+        ${action}
+        return element`;
+      }
+
+      testLine = `    page.${methodName}()\n`;
+      
+      return { methodCode, testLine };
+    }
+
     setTimeout(() => {
       clearInterval(waitForDebugPort);
       reject({ error: 'Recording timed out (30s)' });
@@ -120,7 +189,6 @@ ipcMain.handle('recorder:start', async (_, appPath) => {
   });
 });
 
-// Stop session
 ipcMain.handle('recorder:stop', () => {
   [recordingProcess, appProcess].forEach(proc => {
     if (proc) {
@@ -134,7 +202,6 @@ ipcMain.handle('recorder:stop', () => {
   return { status: 'stopped' };
 });
 
-// Execute script
 ipcMain.handle('recorder:execute', async (_, { script, filePath }) => {
   return new Promise((resolve) => {
     const logs = [];
@@ -149,7 +216,6 @@ ipcMain.handle('recorder:execute', async (_, { script, filePath }) => {
   });
 });
 
-// Save to file
 ipcMain.handle('file:save', (_, { filename, content }) => {
   try {
     fs.writeFileSync(filename, content);
@@ -159,12 +225,10 @@ ipcMain.handle('file:save', (_, { filename, content }) => {
   }
 });
 
-// Status check
 ipcMain.handle('recorder:status', () => ({
   isRecording: !!recordingProcess
 }));
 
-// On app exit
 app.on('before-quit', () => {
   [recordingProcess, appProcess].forEach(proc => {
     try {

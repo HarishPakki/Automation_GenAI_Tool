@@ -5,10 +5,11 @@ const UIAutomation = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [appPath, setAppPath] = useState('');
-  const [pythonCode, setPythonCode] = useState('');
-  const [xpaths, setXpaths] = useState('');
+  const [pageObjects, setPageObjects] = useState('');
+  const [testScript, setTestScript] = useState('');
   const [executionLog, setExecutionLog] = useState([]);
   const [generatedFiles, setGeneratedFiles] = useState({});
+  const [selfHealingEnabled, setSelfHealingEnabled] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -48,17 +49,23 @@ const UIAutomation = () => {
     }
 
     setIsRecording(true);
-    addLog('Starting recording session...');
+    addLog(`Starting recording session with ${selfHealingEnabled ? 'self-healing' : 'standard'} locators...`);
 
     try {
-      const result = await window.electronAPI.startRecording(appPath);
-      setPythonCode(result.pythonCode);
-      setXpaths(result.xpaths);
-      setGeneratedFiles({
-        pyFile: result.pyFile,
-        xpathFile: result.xpathFile
+      const result = await window.electronAPI.startRecording({
+        appPath,
+        enableSelfHealing: selfHealingEnabled
       });
+      
+      setPageObjects(result.pageObjects);
+      setTestScript(result.testScript);
+      setGeneratedFiles({
+        pageObjectFile: result.pageObjectFile,
+        testScriptFile: result.testScriptFile
+      });
+      
       addLog('Recording completed successfully!', 'success');
+      addLog(`Generated ${result.pageObjects.split('\n').length} page object methods`, 'info');
     } catch (error) {
       addLog(`Recording failed: ${error.message}`, 'error');
     } finally {
@@ -73,15 +80,15 @@ const UIAutomation = () => {
   };
 
   const executeScript = async () => {
-    if (!pythonCode) return;
+    if (!testScript) return;
 
     setIsExecuting(true);
-    addLog('Starting script execution...');
+    addLog('Starting test execution...');
 
     try {
       const { logs } = await window.electronAPI.executeScript({
-        script: pythonCode,
-        filePath: generatedFiles.pyFile
+        script: testScript,
+        filePath: generatedFiles.testScriptFile
       });
 
       logs.forEach(log => {
@@ -109,7 +116,7 @@ const UIAutomation = () => {
 
   return (
     <div className="ui-automation-container">
-      <h1>Electron App Recorder</h1>
+      <h1>Electron App Recorder with Self-Healing</h1>
       
       <div className="control-panel">
         <button onClick={selectApp}>
@@ -121,6 +128,16 @@ const UIAutomation = () => {
             Selected: <span className="path-text">{appPath.split(/[\\/]/).pop()}</span>
           </div>
         )}
+
+        <label className="toggle-switch">
+          <input 
+            type="checkbox" 
+            checked={selfHealingEnabled}
+            onChange={() => setSelfHealingEnabled(!selfHealingEnabled)}
+          />
+          <span className="slider round"></span>
+          <span>Self-Healing Locators</span>
+        </label>
 
         {!isRecording ? (
           <button 
@@ -141,10 +158,10 @@ const UIAutomation = () => {
 
         <button 
           onClick={executeScript}
-          disabled={!pythonCode || isExecuting}
+          disabled={!testScript || isExecuting}
           className="execute-btn"
         >
-          {isExecuting ? 'Executing...' : 'Execute Script'}
+          {isExecuting ? 'Executing...' : 'Execute Test'}
         </button>
 
         <button onClick={clearLogs}>
@@ -154,36 +171,36 @@ const UIAutomation = () => {
 
       <div className="output-section">
         <div className="code-section">
-          <h2>Generated Python Code</h2>
-          {pythonCode ? (
+          <h2>Page Objects</h2>
+          {pageObjects ? (
             <>
               <button 
-                onClick={() => downloadFile('automation.py', pythonCode)}
+                onClick={() => downloadFile('page_objects.py', pageObjects)}
                 className="download-btn"
               >
-                Download Python Code
+                Download Page Objects
               </button>
-              <pre>{pythonCode}</pre>
+              <pre>{pageObjects}</pre>
             </>
           ) : (
-            <p>No code generated yet. Start recording to generate code.</p>
+            <p>No page objects generated yet. Start recording to generate code.</p>
           )}
         </div>
 
         <div className="xpath-section">
-          <h2>XPaths</h2>
-          {xpaths ? (
+          <h2>Test Script</h2>
+          {testScript ? (
             <>
               <button 
-                onClick={() => downloadFile('xpaths.txt', xpaths)}
+                onClick={() => downloadFile('test_script.py', testScript)}
                 className="download-btn"
               >
-                Download XPaths
+                Download Test Script
               </button>
-              <pre>{xpaths}</pre>
+              <pre>{testScript}</pre>
             </>
           ) : (
-            <p>No XPaths recorded yet.</p>
+            <p>No test script recorded yet.</p>
           )}
         </div>
       </div>
