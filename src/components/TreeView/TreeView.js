@@ -1,263 +1,183 @@
-import { useContext, useState } from "react";
-import Input from "./Input";
-import { FileExplorerContext } from "./context/FileExplorerContext";
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
-import CreateNewFolderOutlinedIcon from '@mui/icons-material/CreateNewFolderOutlined';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
-import FolderIcon from '@mui/icons-material/Folder';
-import AppsIcon from '@mui/icons-material/Apps';
-import "./TreeView.css";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
+import { useState, useContext } from 'react';
+import { FileExplorerContext } from './context/FileExplorerContext';
+import { FiFolder, FiFile, FiChevronRight, FiChevronDown, FiPlus, FiEdit2, FiTrash2, FiMoreVertical } from 'react-icons/fi';
+import './TreeView.css';
 
-const iconStyles = {
-  fontSize: '18px',
-  marginRight: '8px'
-};
+const TreeNode = ({ node, depth = 0 }) => {
+  const { nodes, addNode, editNode, deleteNode } = useContext(FileExplorerContext);
+  const [isExpanded, setIsExpanded] = useState(depth < 2); // Auto-expand first two levels
+  const [isEditing, setIsEditing] = useState(false);
+  const [newName, setNewName] = useState(node.name);
+  const [showActions, setShowActions] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAddFolder, setShowAddFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
 
-const applicationIcon = <AppsIcon sx={{ ...iconStyles, color: '#1976d2' }} />;
-const folderIcon = <FolderIcon sx={{ ...iconStyles, color: '#ffb74d' }} />;
-const fileIcon = <InsertDriveFileOutlinedIcon sx={{ ...iconStyles, color: '#78909c' }} />;
+  const hasChildren = node.children && node.children.length > 0;
+  const isLeaf = !hasChildren;
 
-function TreeNode({ node }) {
-  const [showChildren, setShowChildren] = useState(true);
-  const [showAddInput, setShowAddInput] = useState(false);
-  const [showEditInput, setShowEditInput] = useState(false);
-  const [showDeleteConfirmationDialog, setShowDeleteConfirmationDialog] = useState(false);
-  const [newType, setNewType] = useState(null);
-  
-  const { 
-    nodes, 
-    deleteNode, 
-    addNode, 
-    editNode,
-    handleContextMenu
-  } = useContext(FileExplorerContext);
-
-  const handleClick = () => {
-    if (node.children?.length > 0) {
-      setShowChildren(!showChildren);
+  const handleToggle = () => {
+    if (hasChildren) {
+      setIsExpanded(!isExpanded);
     }
   };
 
-  const renderDeleteConfirmationDialog = () => {
-    return (
-      <Dialog
-        open={showDeleteConfirmationDialog}
-        onClose={() => setShowDeleteConfirmationDialog(false)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">Delete Confirmation</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete "{node.name}"?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowDeleteConfirmationDialog(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            color="error"
-            onClick={() => {
-              deleteNode(node.id);
-              setShowDeleteConfirmationDialog(false);
-            }} 
-            autoFocus
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
+  const handleEdit = () => {
+    setIsEditing(true);
+    setShowActions(false);
+  };
+
+  const saveEdit = () => {
+    if (newName.trim()) {
+      editNode(node.id, newName.trim());
+      setIsEditing(false);
+    }
+  };
+
+  const cancelEdit = () => {
+    setNewName(node.name);
+    setIsEditing(false);
+  };
+
+  const handleAddFolder = () => {
+    if (newFolderName.trim()) {
+      addNode(node.id, newFolderName.trim(), 'folder');
+      setNewFolderName('');
+      setShowAddFolder(false);
+      setIsExpanded(true); // Auto-expand when adding a folder
+    }
+  };
+
+  const confirmDelete = () => {
+    deleteNode(node.id);
+    setShowDeleteConfirm(false);
   };
 
   return (
-    <div 
-      className="node-container"
-      onContextMenu={(e) => handleContextMenu(e, node.id)}
-    >
-      {renderDeleteConfirmationDialog()}
-      
-      <div className="file-row">
-        <div onClick={handleClick}>
-          {node.type === "application" && applicationIcon}
-          {node.type === "folder" && (showChildren ? 
-            <KeyboardArrowDownIcon fontSize="medium" sx={iconStyles} /> : 
-            <KeyboardArrowRightIcon fontSize="medium" sx={iconStyles} />)}
-          {node.type === "file" && fileIcon}
+    <div className={`tree-node ${isLeaf ? 'is-leaf' : ''}`} style={{ '--depth': depth }}>
+      <div className="node-header">
+        <div className="node-content" onClick={handleToggle}>
+          {hasChildren ? (
+            <span className="toggle-icon">
+              {isExpanded ? <FiChevronDown /> : <FiChevronRight />}
+            </span>
+          ) : (
+            <span className="toggle-icon spacer"></span>
+          )}
+
+          <span className="node-icon">
+            {node.type === 'folder' ? <FiFolder /> : <FiFile />}
+          </span>
+
+          {isEditing ? (
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onBlur={saveEdit}
+              onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
+              autoFocus
+              className="edit-input"
+            />
+          ) : (
+            <span className="node-name">{node.name}</span>
+          )}
         </div>
 
-        {showEditInput ? (
-          <div>
-            <Input
-              name={node.name}
-              cancel={() => setShowEditInput(false)}
-              id={node.id}
-              submit={editNode}
-            />
-          </div>
-        ) : (
-          <div className="file-actions">
-            <div className="file-name" onClick={handleClick}>{node.name}</div>
-            
-            <div className="action-icons">
-              {(node.type === "application" || node.type === "folder") && (
-                <div onClick={(e) => {
-                  e.stopPropagation();
-                  setShowAddInput(true);
-                  setNewType("folder");
-                }}>
-                  <CreateNewFolderOutlinedIcon fontSize="medium" sx={iconStyles} />
-                </div>
-              )}
-              <div onClick={(e) => {
+        {!isEditing && node.id !== 1 && (
+          <div className="node-actions">
+            <button 
+              className="action-btn more-btn" 
+              onClick={(e) => {
                 e.stopPropagation();
-                setShowEditInput(true);
-              }}>
-                <EditOutlinedIcon fontSize="medium" sx={iconStyles} />
+                setShowActions(!showActions);
+              }}
+            >
+              <FiMoreVertical />
+            </button>
+
+            {showActions && (
+              <div className="action-menu">
+                <button className="action-item" onClick={handleEdit}>
+                  <FiEdit2 /> Rename
+                </button>
+                <button 
+                  className="action-item" 
+                  onClick={() => {
+                    setShowAddFolder(true);
+                    setShowActions(false);
+                  }}
+                >
+                  <FiPlus /> Add Folder
+                </button>
+                <button 
+                  className="action-item delete" 
+                  onClick={() => {
+                    setShowDeleteConfirm(true);
+                    setShowActions(false);
+                  }}
+                >
+                  <FiTrash2 /> Delete
+                </button>
               </div>
-              <div onClick={(e) => {
-                e.stopPropagation();
-                setShowDeleteConfirmationDialog(true);
-              }}>
-                <DeleteOutlineOutlinedIcon fontSize="medium" sx={iconStyles} />
-              </div>
-            </div>
+            )}
           </div>
         )}
       </div>
 
-      {showAddInput && (
-        <div style={{ marginLeft: '1.5rem' }}>
-          <Input
-            submit={addNode}
-            id={node.id}
-            cancel={() => setShowAddInput(false)}
-            newType={newType}
+      {isExpanded && hasChildren && (
+        <div className="node-children">
+          {node.children.map(childId => (
+            <TreeNode key={childId} node={nodes[childId]} depth={depth + 1} />
+          ))}
+        </div>
+      )}
+
+      {showAddFolder && (
+        <div className="add-folder-container">
+          <input
+            type="text"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            onBlur={handleAddFolder}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddFolder()}
+            placeholder="Folder name"
+            autoFocus
+            className="add-input"
           />
         </div>
       )}
 
-      {showChildren && node.children?.map(childId => (
-        <div key={childId} style={{ marginLeft: '1.5rem' }}>
-          <TreeNode node={nodes[childId]} />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export default function FileExplorer() {
-  const { 
-    nodes, 
-    createApplication,
-    contextMenu,
-    handleContextMenu,
-    closeContextMenu,
-    addNode,
-    editNode
-  } = useContext(FileExplorerContext);
-
-  const renderContextMenu = () => {
-    if (!contextMenu.visible || !nodes[contextMenu.nodeId]) return null;
-    
-    const node = nodes[contextMenu.nodeId];
-    const isApplication = node.type === "application";
-    
-    return (
-      <Menu
-        open={contextMenu.visible}
-        onClose={closeContextMenu}
-        anchorReference="anchorPosition"
-        anchorPosition={{
-          top: contextMenu.y,
-          left: contextMenu.x
-        }}
-      >
-        {isApplication && (
-          <>
-            <MenuItem onClick={() => {
-              addNode(node.id, "Folder A", "folder");
-              closeContextMenu();
-            }}>
-              Create A (Folder)
-            </MenuItem>
-            <MenuItem onClick={() => {
-              addNode(node.id, "File B", "file");
-              closeContextMenu();
-            }}>
-              Create B (File)
-            </MenuItem>
-            <MenuItem onClick={() => {
-              addNode(node.id, "Folder C", "folder");
-              closeContextMenu();
-            }}>
-              Create C (Folder)
-            </MenuItem>
-            <MenuItem onClick={() => {
-              addNode(node.id, "File D", "file");
-              closeContextMenu();
-            }}>
-              Create D (File)
-            </MenuItem>
-          </>
-        )}
-        <MenuItem onClick={() => {
-          editNode(node.id, prompt("Enter new name", node.name));
-          closeContextMenu();
-        }}>
-          Rename
-        </MenuItem>
-        {/* <MenuItem onClick={() => {
-          if (confirm(`Are you sure you want to delete "${node.name}"?`)) {
-            deleteNode(node.id);
-          }
-          closeContextMenu();
-        }}>
-          Delete
-        </MenuItem> */}
-      </Menu>
-    );
-  };
-
-  return (
-    <div className="tree-view-container">
-      {renderContextMenu()}
-      
-      <div className="create-app-container">
-        <Button 
-          variant="contained" 
-          color="primary"
-          onClick={createApplication}
-          startIcon={<AppsIcon />}
-        >
-          Create Application
-        </Button>
-      </div>
-
-      {Object.keys(nodes).length === 0 ? (
-        <div className="no-data">No applications created yet</div>
-      ) : (
-        <div className="applications-list">
-          {Object.values(nodes)
-            .filter(node => node.parentId === null)
-            .map(node => (
-              <TreeNode key={node.id} node={node} />
-            ))
-          }
+      {showDeleteConfirm && (
+        <div className="delete-confirm-overlay">
+          <div className="delete-confirm-modal">
+            <p>Delete "{node.name}"?</p>
+            <div className="confirm-buttons">
+              <button className="cancel-btn" onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </button>
+              <button className="delete-btn" onClick={confirmDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default function TreeView() {
+  const { nodes } = useContext(FileExplorerContext);
+
+  return (
+    <div className="tree-view">
+      {Object.values(nodes)
+        .filter(node => node.parentId === null)
+        .map(node => (
+          <TreeNode key={node.id} node={node} />
+        ))
+      }
+    </div>
+  );
+};
