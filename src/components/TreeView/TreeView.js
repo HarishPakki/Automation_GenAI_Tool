@@ -20,7 +20,7 @@ const TreeNode = ({ node, depth = 0, setSelectedTreeItem }) => {
     if (hasChildren) {
       setIsExpanded(!isExpanded);
     } else {
-      setSelectedTreeItem(node);
+      setSelectedTreeItem(node.name);
     }
   };
 

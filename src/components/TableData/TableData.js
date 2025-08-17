@@ -479,8 +479,8 @@ const TableData = ({ selectedTreeItem, initialData }) => {
 
   const hasSelectedRows = selectedRows.length > 0;
 
-  if (!selectedTreeItem || (selectedTreeItem.children && selectedTreeItem.children.length > 0)) {
-    return <div className='no-table-data'>Select test case to view the data.</div>;
+  if (!selectedTreeItem) {
+    return <div className='no-table-data'>Select a test case to view the data.</div>;
   }
 
   return (
