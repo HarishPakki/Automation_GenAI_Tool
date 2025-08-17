@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 import './TableData.css';
 
 const TableData = ({ selectedTreeItem, initialData }) => {
@@ -21,6 +24,14 @@ const TableData = ({ selectedTreeItem, initialData }) => {
   const [selectedRows, setSelectedRows] = useState([]);
   const dropdownRef = useRef(null);
   const pageDropdownRef = useRef(null);
+  const [keyValueRows, setKeyValueRows] = useState([
+    { key: 'Environment', value: 'Production' },
+    { key: 'Version', value: '1.0.0' },
+  ]);
+  const [editingKVCell, setEditingKVCell] = useState(null);
+  const [editKVValue, setEditKVValue] = useState('');
+  const [showKeyValueTable, setShowKeyValueTable] = useState(false);
+
 
   useEffect(() => {
     if (initialData && initialData.length > 0) {
@@ -436,248 +447,373 @@ const TableData = ({ selectedTreeItem, initialData }) => {
     // Add your execute logic here
   };
 
+    const startEditingKV = (rowIndex, field, value) => {
+    setEditingKVCell({ rowIndex, field });
+    setEditKVValue(value);
+  };
+
+  const saveEditKV = () => {
+    if (editingKVCell) {
+      const newRows = [...keyValueRows];
+      newRows[editingKVCell.rowIndex][editingKVCell.field] = editKVValue;
+      setKeyValueRows(newRows);
+      setEditingKVCell(null);
+    }
+  };
+
+  const addKVRow = () => {
+    setKeyValueRows([...keyValueRows, { key: '', value: '' }]);
+  };
+
+  const deleteKVRow = (rowIndex) => {
+    setKeyValueRows(keyValueRows.filter((_, idx) => idx !== rowIndex));
+  };
+
   const hasSelectedRows = selectedRows.length > 0;
 
   return (
-    <div className='table-data-wrapper'>
-      <div className="table-controls">
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="Search across all columns..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="search-input"
-          />
-          <button className="clear-filters" onClick={clearAllFilters}>
-            Clear All Filters
-          </button>
+    <>
+      <div className='table-data-wrapper'>
+        <div className="table-controls">
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search across all columns..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="search-input"
+            />
+            <button className="clear-filters" onClick={clearAllFilters}>
+              Clear All Filters
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              {headers.map((header, colIndex) => (
-                <th key={colIndex}>
-                  {colIndex === 0 ? (
-                    <span>{header}</span>
-                  ) : (
-                    <div className="header-content">
-                      <span title={header}>{header}</span>
-                      <button
-                        className={`filter-button ${columnFilters[colIndex - 1]?.size > 0 ? 'active' : ''}`}
-                        onClick={(e) => toggleFilterDropdown(colIndex - 1, e)}
-                      >
-                        <svg viewBox="0 0 24 24" width="16" height="16">
-                          <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                  {showFilterDropdown === colIndex - 1 && (
-                    <div
-                      className="filter-box"
-                      ref={dropdownRef}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="filter-header">
-                        <h4>Filter by {headers[colIndex]}</h4>
-                        <button 
-                          className="close-filter"
-                          onClick={() => setShowFilterDropdown(null)}
-                        >
-                          ×
-                        </button>
-                      </div>
-                      <div className="search-filter">
-                        <input
-                          type="text"
-                          placeholder={`Search ${headers[colIndex]}`}
-                          className="filter-search-input"
-                          value={filterSearchTerm}
-                          onChange={(e) => setFilterSearchTerm(e.target.value)}
-                        />
-                      </div>
-                      <div className="filter-options-container">
-                        {getFilteredColumnValues(colIndex - 1).map((value, i) => (
-                          <label key={i} className="filter-option">
-                            <input
-                              type="checkbox"
-                              checked={columnFilters[colIndex - 1]?.has(value) || false}
-                              onChange={() => updateFilter(colIndex - 1, value)}
-                            />
-                            <span title={value}>{value}</span>
-                            <span className="count-badge">
-                              {data.filter(row => String(row[colIndex - 1]) === value).length}
-                            </span>
-                          </label>
-                        ))}
-                        {getFilteredColumnValues(colIndex - 1).length === 0 && (
-                          <div className="no-results">No matching options</div>
-                        )}
-                      </div>
-                      <div className="filter-actions">
-                        <button 
-                          className="apply-filter"
-                          onClick={() => setShowFilterDropdown(null)}
-                        >
-                          Apply
-                        </button>
-                        <button 
-                          className="clear-filter"
-                          onClick={() => {
-                            const newFilters = { ...columnFilters };
-                            newFilters[colIndex - 1] = new Set();
-                            setColumnFilters(newFilters);
-                          }}
-                        >
-                          Clear
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {displayData.map((row, rowIndex) => (
-              <tr 
-                key={rowIndex}
-                draggable
-                onDragStart={(e) => handleDragStart(e, rowIndex)}
-                onDragOver={() => handleDragOver(rowIndex)}
-                onDrop={handleDrop}
-                className={`${draggedRow === rowIndex ? 'dragging' : ''} ${checkedRows[rowIndex] ? 'row-selected' : ''}`}
-              >
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={!!checkedRows[rowIndex]}
-                    onChange={() => toggleRowCheck(rowIndex)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </td>
-                {row.map((cell, colIndex) => (
-                  <td
-                    key={colIndex}
-                    onClick={() => startEditing(rowIndex, colIndex, cell)}
-                    title={String(cell)}
-                    className={changedCells[`${rowIndex}-${colIndex}`] ? 'changed-cell' : ''}
-                  >
-                    {editingCell?.rowIndex === rowIndex && editingCell?.colIndex === colIndex ? (
-                      <input
-                        type="text"
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={saveEdit}
-                        onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
-                        autoFocus
-                        className="edit-input"
-                      />
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                {headers.map((header, colIndex) => (
+                  <th key={colIndex}>
+                    {colIndex === 0 ? (
+                      <span>{header}</span>
                     ) : (
-                      <span className="cell-content">{cell}</span>
+                      <div className="header-content">
+                        <span title={header}>{header}</span>
+                        <button
+                          className={`filter-button ${columnFilters[colIndex - 1]?.size > 0 ? 'active' : ''}`}
+                          onClick={(e) => toggleFilterDropdown(colIndex - 1, e)}
+                        >
+                          <svg viewBox="0 0 24 24" width="16" height="16">
+                            <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" />
+                          </svg>
+                        </button>
+                      </div>
                     )}
-                  </td>
+                    {showFilterDropdown === colIndex - 1 && (
+                      <div
+                        className="filter-box"
+                        ref={dropdownRef}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="filter-header">
+                          <h4>Filter by {headers[colIndex]}</h4>
+                          <button 
+                            className="close-filter"
+                            onClick={() => setShowFilterDropdown(null)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div className="search-filter">
+                          <input
+                            type="text"
+                            placeholder={`Search ${headers[colIndex]}`}
+                            className="filter-search-input"
+                            value={filterSearchTerm}
+                            onChange={(e) => setFilterSearchTerm(e.target.value)}
+                          />
+                        </div>
+                        <div className="filter-options-container">
+                          {getFilteredColumnValues(colIndex - 1).map((value, i) => (
+                            <label key={i} className="filter-option">
+                              <input
+                                type="checkbox"
+                                checked={columnFilters[colIndex - 1]?.has(value) || false}
+                                onChange={() => updateFilter(colIndex - 1, value)}
+                              />
+                              <span title={value}>{value}</span>
+                              <span className="count-badge">
+                                {data.filter(row => String(row[colIndex - 1]) === value).length}
+                              </span>
+                            </label>
+                          ))}
+                          {getFilteredColumnValues(colIndex - 1).length === 0 && (
+                            <div className="no-results">No matching options</div>
+                          )}
+                        </div>
+                        <div className="filter-actions">
+                          <button 
+                            className="apply-filter"
+                            onClick={() => setShowFilterDropdown(null)}
+                          >
+                            Apply
+                          </button>
+                          <button 
+                            className="clear-filter"
+                            onClick={() => {
+                              const newFilters = { ...columnFilters };
+                              newFilters[colIndex - 1] = new Set();
+                              setColumnFilters(newFilters);
+                            }}
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="table-footer">
-        <div className="pagination-controls">
-          <div className="records-per-page">
-            <span>Show</span>
-            <select 
-              value={recordsPerPage}
-              onChange={(e) => {
-                setRecordsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="records-select"
-            >
-              {[10, 25, 50, 100, 250, 500].map(option => (
-                <option key={option} value={option}>{option}</option>
-              ))}
-            </select>
-            <span>entries</span>
-          </div>
-          
-          <div className="pagination">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="page-nav"
-            >
-              Previous
-            </button>
-
-            <div className="page-selector" ref={pageDropdownRef}>
-              <button 
-                onClick={() => setShowPageDropdown(!showPageDropdown)}
-                className="page-display"
-              >
-                Page {currentPage} of {Math.ceil(filteredData.length / recordsPerPage)}
-                <span className="dropdown-icon">▼</span>
-              </button>
-              
-              {showPageDropdown && (
-                <div className="page-dropdown">
-                  {Array.from(
-                    { length: Math.ceil(filteredData.length / recordsPerPage) }, 
-                    (_, i) => i + 1
-                  ).map(page => (
-                    <button
-                      key={page}
-                      onClick={() => {
-                        setCurrentPage(page);
-                        setShowPageDropdown(false);
+            </thead>
+            <tbody>
+              {displayData.map((row, rowIndex) => (
+                <tr 
+                  key={rowIndex}
+                  draggable
+                  onDragStart={e => {
+                    // Only start row drag if not dragging from key-value
+                    if (!e.dataTransfer.types.includes('application/x-keyvalue')) {
+                      handleDragStart(e, rowIndex);
+                    }
+                  }}
+                  onDragOver={e => {
+                    // Only allow row drag-over if not dragging from key-value
+                    if (!e.dataTransfer.types.includes('application/x-keyvalue')) {
+                      handleDragOver(rowIndex);
+                    }
+                    e.preventDefault();
+                  }}
+                  onDrop={e => {
+                    // Only handle row drop if not dragging from key-value
+                    if (!e.dataTransfer.types.includes('application/x-keyvalue')) {
+                      handleDrop();
+                    }
+                  }}
+                  className={`${draggedRow === rowIndex ? 'dragging' : ''} ${checkedRows[rowIndex] ? 'row-selected' : ''}`}
+                >
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={!!checkedRows[rowIndex]}
+                      onChange={() => toggleRowCheck(rowIndex)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </td>
+                  {row.map((cell, colIndex) => (
+                    <td
+                      key={colIndex}
+                      onClick={() => startEditing(rowIndex, colIndex, cell)}
+                      title={String(cell)}
+                      className={changedCells[`${rowIndex}-${colIndex}`] ? 'changed-cell' : ''}
+                      onDragOver={e => e.preventDefault()}
+                      onDrop={e => {
+                        const droppedValue = e.dataTransfer.getData('application/x-keyvalue');
+                        if (droppedValue) {
+                          const newData = [...data];
+                          newData[rowIndex][colIndex] = droppedValue;
+                          setData(newData);
+                          setChangedCells(prev => ({
+                            ...prev,
+                            [`${rowIndex}-${colIndex}`]: true
+                          }));
+                        }
                       }}
-                      className={`page-option ${currentPage === page ? 'active' : ''}`}
                     >
-                      {page}
-                    </button>
+                      {editingCell?.rowIndex === rowIndex && editingCell?.colIndex === colIndex ? (
+                        <input
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={saveEdit}
+                          onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
+                          autoFocus
+                          className="edit-input"
+                        />
+                      ) : (
+                        <span className="cell-content">{cell}</span>
+                      )}
+                    </td>
                   ))}
-                </div>
-              )}
-            </div>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(p + 1, Math.ceil(filteredData.length / recordsPerPage)))}
-              disabled={currentPage === Math.ceil(filteredData.length / recordsPerPage)}
-              className="page-nav"
-            >
-              Next
-            </button>
+        <div className="table-footer">
+          <div className="pagination-controls">
+            <div className="records-per-page">
+              <span>Show</span>
+              <select 
+                value={recordsPerPage}
+                onChange={(e) => {
+                  setRecordsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="records-select"
+              >
+                {[10, 25, 50, 100, 250, 500].map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              <span>entries</span>
+            </div>
+            
+            <div className="pagination">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="page-nav"
+              >
+                Previous
+              </button>
+
+              <div className="page-selector" ref={pageDropdownRef}>
+                <button 
+                  onClick={() => setShowPageDropdown(!showPageDropdown)}
+                  className="page-display"
+                >
+                  Page {currentPage} of {Math.ceil(filteredData.length / recordsPerPage)}
+                  <span className="dropdown-icon">▼</span>
+                </button>
+                
+                {showPageDropdown && (
+                  <div className="page-dropdown">
+                    {Array.from(
+                      { length: Math.ceil(filteredData.length / recordsPerPage) }, 
+                      (_, i) => i + 1
+                    ).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => {
+                          setCurrentPage(page);
+                          setShowPageDropdown(false);
+                        }}
+                        className={`page-option ${currentPage === page ? 'active' : ''}`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(p + 1, Math.ceil(filteredData.length / recordsPerPage)))}
+                disabled={currentPage === Math.ceil(filteredData.length / recordsPerPage)}
+                className="page-nav"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+          <div className="record-count">
+            Showing {(currentPage - 1) * recordsPerPage + 1} to {Math.min(currentPage * recordsPerPage, filteredData.length)} of {filteredData.length} entries
           </div>
         </div>
 
-        <div className="record-count">
-          Showing {(currentPage - 1) * recordsPerPage + 1} to {Math.min(currentPage * recordsPerPage, filteredData.length)} of {filteredData.length} entries
-        </div>
+        {hasSelectedRows && (
+          <div className="action-buttons">
+            <button 
+              onClick={handleSave}
+              className="save-button"
+            >
+              Save Selected
+            </button>
+            <button 
+              onClick={handleExecute}
+              className="execute-button"
+            >
+              Execute Selected
+            </button>
+          </div>
+        )}
+      </div>
+      <div>
+        <button onClick={()=>setShowKeyValueTable(!showKeyValueTable)} className='toggle-key-value-table-btn'>
+          {showKeyValueTable ? <ArrowRightIcon /> : <ArrowLeftIcon />}
+        </button>
       </div>
 
-      {hasSelectedRows && (
-        <div className="action-buttons">
-          <button 
-            onClick={handleSave}
-            className="save-button"
-          >
-            Save Selected
-          </button>
-          <button 
-            onClick={handleExecute}
-            className="execute-button"
-          >
-            Execute Selected
-          </button>
-        </div>
-      )}
-    </div>
+      {
+        showKeyValueTable && (
+          <div className='key-value-table-container'>
+            <table>
+              <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Value</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {keyValueRows.map((row, rowIndex) => (
+                  <tr key={rowIndex}>
+                    <td
+                      onClick={() => startEditingKV(rowIndex, 'key', row.key)}
+                      style={{ cursor: 'pointer' }}
+                      draggable
+                      onDragStart={e => {
+                        e.dataTransfer.setData('application/x-keyvalue', row.value);
+                        e.dataTransfer.effectAllowed = 'copy';
+                      }}
+                    >
+                      {editingKVCell?.rowIndex === rowIndex && editingKVCell?.field === 'key' ? (
+                        <input
+                          type="text"
+                          value={editKVValue}
+                          onChange={e => setEditKVValue(e.target.value)}
+                          onBlur={saveEditKV}
+                          onKeyDown={e => e.key === 'Enter' && saveEditKV()}
+                          autoFocus
+                        />
+                      ) : (
+                        row.key
+                      )}
+                    </td>
+                    <td
+                      onClick={() => startEditingKV(rowIndex, 'value', row.value)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {editingKVCell?.rowIndex === rowIndex && editingKVCell?.field === 'value' ? (
+                        <input
+                          type="text"
+                          value={editKVValue}
+                          onChange={e => setEditKVValue(e.target.value)}
+                          onBlur={saveEditKV}
+                          onKeyDown={e => e.key === 'Enter' && saveEditKV()}
+                          autoFocus
+                        />
+                      ) : (
+                        row.value
+                      )}
+                    </td>
+                    <td>
+                      <button onClick={() => deleteKVRow(rowIndex)} title="Delete Row" className='delete-value-button'>
+                        <DeleteIcon color='error'/>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button onClick={addKVRow} style={{ marginTop: 8 }}>Add Row</button>
+          </div>
+        )
+      }
+    </>
   );
 };
 

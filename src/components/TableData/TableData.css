@@ -4,6 +4,9 @@
   overflow-x: auto;
   background: #ffffff;
   font-family: 'AkkuratPro', 'Segoe UI', sans-serif;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .table-controls {
@@ -57,12 +60,12 @@
   background: white;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: auto !important;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1000px;
 }
 
 th, td {
@@ -275,6 +278,12 @@ thead {
   border-top: 1px solid #e0e0e0;
   flex-wrap: wrap;
   gap: 15px;
+
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: #fff;
+  margin-top: 0;
 }
 
 .pagination-controls {
@@ -499,4 +508,22 @@ tr:hover {
     width: 100%;
     justify-content: space-between;
   }
+}
+
+.key-value-table-container {
+  width: 600px;
+  background: white;
+}
+
+.delete-value-button {
+  padding: 10px;
+  min-width: initial;
+  background-color: transparent;
+}
+
+.toggle-key-value-table-btn {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  min-width: auto;
 }

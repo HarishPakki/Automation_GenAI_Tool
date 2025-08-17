@@ -4,14 +4,13 @@
   min-height: 100vh;
 }
 
-.dashboard-content {
+/* .dashboard-content {
   display: flex;
   flex: 1;
-}
+} */
 
 .main-panel {
   flex: 1;
-  padding: 20px;
   background: #f5f7fa;
 }
 
