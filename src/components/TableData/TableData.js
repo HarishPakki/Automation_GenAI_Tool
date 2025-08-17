@@ -34,6 +34,10 @@ const TableData = ({ selectedTreeItem, initialData }) => {
 
 
   useEffect(() => {
+    if(!selectedTreeItem) {
+      return;
+    }
+
     if (initialData && initialData.length > 0) {
       const headersFromData = initialData[0].map((_, index) => `Column ${index + 1}`);
       setHeaders(['', ...headersFromData]);
@@ -87,6 +91,10 @@ const TableData = ({ selectedTreeItem, initialData }) => {
   }, [filteredData, currentPage, recordsPerPage]);
 
   useEffect(() => {
+    if(!selectedTreeItem) {
+      return;
+    }
+
     if (!initialData || initialData.length === 0) {
       const sampleData = [
         ['Project Alpha', 'Development', 'John Doe', '2023-01-15', 'In Progress', 'High'],
@@ -341,7 +349,7 @@ const TableData = ({ selectedTreeItem, initialData }) => {
       });
       setColumnFilters(filters);
     }
-  }, [initialData]);
+  }, [selectedTreeItem]);
 
   const handleSearch = (e) => setSearchTerm(e.target.value);
 
@@ -470,6 +478,10 @@ const TableData = ({ selectedTreeItem, initialData }) => {
   };
 
   const hasSelectedRows = selectedRows.length > 0;
+
+  if (!selectedTreeItem || (selectedTreeItem.children && selectedTreeItem.children.length > 0)) {
+    return <div className='no-table-data'>Select test case to view the data.</div>;
+  }
 
   return (
     <>
@@ -778,6 +790,7 @@ const TableData = ({ selectedTreeItem, initialData }) => {
                           onBlur={saveEditKV}
                           onKeyDown={e => e.key === 'Enter' && saveEditKV()}
                           autoFocus
+                          className='edit-input'
                         />
                       ) : (
                         row.key
@@ -795,6 +808,7 @@ const TableData = ({ selectedTreeItem, initialData }) => {
                           onBlur={saveEditKV}
                           onKeyDown={e => e.key === 'Enter' && saveEditKV()}
                           autoFocus
+                          className='edit-input'
                         />
                       ) : (
                         row.value

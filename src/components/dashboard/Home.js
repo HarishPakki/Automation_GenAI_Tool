@@ -4,7 +4,7 @@ import TreeView from '../TreeView/TreeView';
 import TableData from '../TableData/TableData';
 
 const Home = () => {
-  const [selectedTreeItem, setSelectedTreeItem] = useState([]);
+  const [selectedTreeItem, setSelectedTreeItem] = useState(null);
 
   return (
     <div className="home-container">

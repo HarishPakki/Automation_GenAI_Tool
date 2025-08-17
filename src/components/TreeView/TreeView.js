@@ -3,7 +3,7 @@ import { FileExplorerContext } from './context/FileExplorerContext';
 import { FiFolder, FiFile, FiChevronRight, FiChevronDown, FiPlus, FiEdit2, FiTrash2, FiMoreVertical } from 'react-icons/fi';
 import './TreeView.css';
 
-const TreeNode = ({ node, depth = 0 }) => {
+const TreeNode = ({ node, depth = 0, setSelectedTreeItem }) => {
   const { nodes, addNode, editNode, deleteNode } = useContext(FileExplorerContext);
   const [isExpanded, setIsExpanded] = useState(depth < 2); // Auto-expand first two levels
   const [isEditing, setIsEditing] = useState(false);
@@ -19,6 +19,8 @@ const TreeNode = ({ node, depth = 0 }) => {
   const handleToggle = () => {
     if (hasChildren) {
       setIsExpanded(!isExpanded);
+    } else {
+      setSelectedTreeItem(node);
     }
   };
 
@@ -128,7 +130,7 @@ const TreeNode = ({ node, depth = 0 }) => {
       {isExpanded && hasChildren && (
         <div className="node-children">
           {node.children.map(childId => (
-            <TreeNode key={childId} node={nodes[childId]} depth={depth + 1} />
+            <TreeNode key={childId} node={nodes[childId]} depth={depth + 1} setSelectedTreeItem={setSelectedTreeItem} />
           ))}
         </div>
       )}
@@ -167,7 +169,7 @@ const TreeNode = ({ node, depth = 0 }) => {
   );
 };
 
-export default function TreeView() {
+export default function TreeView({ setSelectedTreeItem }) {
   const { nodes } = useContext(FileExplorerContext);
 
   return (
@@ -175,7 +177,7 @@ export default function TreeView() {
       {Object.values(nodes)
         .filter(node => node.parentId === null)
         .map(node => (
-          <TreeNode key={node.id} node={node} />
+          <TreeNode key={node.id} node={node} setSelectedTreeItem={setSelectedTreeItem} />
         ))
       }
     </div>
